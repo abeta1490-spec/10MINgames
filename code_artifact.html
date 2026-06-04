@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゲームポータル</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans JP', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    },
+                    colors: {
+                        apple: {
+                            black: '#1d1d1f',
+                            dark: '#000000',
+                            panel: '#f5f5f7',
+                            border: '#d2d2d7',
+                            blue: '#0071e3',
+                            blueHover: '#0077ed',
+                            textDark: '#1d1d1f',
+                            textGray: '#86868b',
+                            errorRed: '#df1b1b'
+                        }
+                    },
+                    boxShadow: {
+                        'premium': '0 8px 30px rgba(0, 0, 0, 0.04)',
+                        'hover-card': '0 20px 40px rgba(0, 0, 0, 0.08)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #ffffff;
+            color: #1d1d1f;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: -0.01em;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f5f5f7;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d2d2d7;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #86868b;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="relative min-h-screen flex flex-col justify-between bg-white">
+
+    <div class="relative z-10 flex flex-col min-h-screen">
+        
+        <header class="flex-none bg-white border-b border-apple-border/30 sticky top-0 z-50">
+            <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-apple-black text-white flex items-center justify-center">
+                        <i class="fa-solid fa-gamepad text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-apple-black">
+                        ゲームポータル
+                    </span>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <div id="userProfile" class="hidden items-center space-x-3 bg-apple-panel px-4 py-2 rounded-full border border-apple-border/40 text-sm text-apple-textDark font-bold">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <span id="userNameDisplay">---</span>
+                        <button id="btnSignOut" class="text-apple-textGray hover:text-apple-black ml-2 transition-colors" title="ログアウト">
+                            <i class="fa-solid fa-right-from-bracket text-base"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow max-w-2xl w-full mx-auto px-6 py-12 flex flex-col justify-center">
+            
+            <div id="portalIntro" class="text-center space-y-4 max-w-xl mx-auto fade-in">
+                <h2 class="text-3xl md:text-4xl font-black tracking-tight text-apple-black leading-tight">
+                    カジュアルゲームポータル
+                </h2>
+                <p class="text-base md:text-lg text-apple-textGray leading-relaxed font-medium">
+                    ブラウザで今すぐ開始できる「5分で遊べるおもしろゲーム」を提供するアクセスサイトです。ユーザーネームを入力してログインすると、配信中のすべてのゲームがアクティブになり、プレイデータを同期できます。
+                </p>
+            </div>
+
+            <!-- ユーザーネームのみのシンプルログインフォーム -->
+            <div id="loginPromptCard" class="max-w-md w-full mx-auto bg-white p-8 rounded-3xl border border-apple-border shadow-premium text-left space-y-6 mt-8 fade-in">
+                <div class="space-y-2 text-center">
+                    <h3 class="text-xl font-bold text-apple-black">プレイヤーログイン</h3>
+                    <p class="text-sm text-apple-textGray">
+                        任意の名前を登録、または入力してください。
+                    </p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <label for="usernameInput" class="text-xs font-bold text-apple-textGray uppercase tracking-wider">プレイヤー名（表示名）</label>
+                        <input type="text" id="usernameInput" class="w-full px-4 py-3.5 bg-apple-panel border border-apple-border rounded-xl text-apple-textDark text-base font-medium focus:outline-none focus:border-apple-blue transition-all" placeholder="ニックネームを入力" value="プレイヤー1">
+                    </div>
+
+                    <div id="errorMessage" class="hidden p-3 bg-red-50 text-apple-errorRed border border-red-100 rounded-xl text-xs font-bold flex items-center space-x-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="errorText"></span>
+                    </div>
+
+                    <button id="btnSignIn" class="w-full py-4 bg-apple-blue hover:bg-apple-blueHover text-white font-bold text-base rounded-xl transition-all active:scale-[0.98] flex items-center justify-center space-x-2 shadow-sm">
+                        <span>ゲーム一覧を開く</span>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ログイン後ダッシュボード（ゲーム一覧） -->
+            <div id="mainDashboard" class="hidden flex flex-col gap-6 fade-in mt-6">
+                <div class="space-y-4">
+                    <h4 class="text-xl font-bold text-apple-black border-b border-apple-border/40 pb-2">配信中のゲーム（随時追加）</h4>
+                    <div id="gameGridContainer" class="grid grid-cols-1 gap-4">
+                        <!-- 配列から動的に生成されます -->
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+
+        <footer class="flex-none bg-apple-panel border-t border-apple-border/30">
+            <div class="max-w-4xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between text-xs text-apple-textGray gap-3 font-medium">
+                <div class="flex items-center space-x-1.5">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-sm"></i>
+                    <span>セキュリティ接続保護対応</span>
+                </div>
+                <div>
+                    <span>&copy; 2026 GAME PORTAL. ALL RIGHTS RESERVED.</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // 🎮 【配信ゲームリストの管理設定】
+        // 新しいゲームアプリを追加する際は、以下の配列にオブジェクトを書き足すだけで完璧に自動展開されます。
+        // ==========================================
+        const GAME_LIST = [
+            {
+                title: "Cosmic Cookie Singularity",
+                subtitle: "超絶クッキーくりっかー",
+                description: "クッキーをクリックして自動化施設を拡大し、銀河の特異点を目指す放置系シミュレーションゲーム。",
+                url: "index.html",
+                icon: "fa-cookie-bite",
+                colorClass: "bg-amber-500",
+                badge: "おすすめ"
+            }
+            /*
+            // 将来追加する際のフォーマット例（アンコメントして書き換えるだけ）
+            ,{
+                title: "New Casual Title",
+                subtitle: "近日公開ゲーム",
+                description: "5分で手軽に楽しめる、爽快カジュアルパズルアクション。",
+                url: "new_game.html",
+                icon: "fa-rocket",
+                colorClass: "bg-blue-500",
+                badge: "NEW"
+            }
+            */
+        ];
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cosmic-cookie-singularity';
+        
+        const fallbackConfig = {
+            apiKey: "AIzaSyDummyKey-ForTestingOnly12345678",
+            authDomain: "localhost",
+            projectId: "cosmic-cookie-singularity",
+            storageBucket: "cosmic-cookie-singularity.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef123456"
+        };
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : fallbackConfig;
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const portalIntro = document.getElementById('portalIntro');
+        const loginPromptCard = document.getElementById('loginPromptCard');
+        const mainDashboard = document.getElementById('mainDashboard');
+        const usernameInput = document.getElementById('usernameInput');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const btnSignIn = document.getElementById('btnSignIn');
+        const btnSignOut = document.getElementById('btnSignOut');
+        const userProfile = document.getElementById('userProfile');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+
+        // ゲーム配信リストの動的展開
+        function deployGamesList() {
+            const container = document.getElementById('gameGridContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            GAME_LIST.forEach(game => {
+                const card = document.createElement('div');
+                card.className = "bg-apple-panel p-6 rounded-2xl border border-apple-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all hover:border-apple-blue/40";
+                
+                card.innerHTML = `
+                    <div class="space-y-2 max-w-md">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl ${game.colorClass || 'bg-apple-black'} text-white flex items-center justify-center shadow-sm">
+                                <i class="fa-solid ${game.icon || 'fa-gamepad'} text-lg"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-lg font-bold text-apple-black leading-tight">${game.title}</h5>
+                                <p class="text-xs text-apple-textGray font-semibold">${game.subtitle}</p>
+                            </div>
+                            ${game.badge ? `<span class="text-[10px] bg-apple-blue text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">${game.badge}</span>` : ''}
+                        </div>
+                        <p class="text-sm text-apple-textGray leading-relaxed pl-1">${game.description}</p>
+                    </div>
+                    <a href="${game.url}" class="w-full md:w-auto px-6 py-3 bg-apple-blue hover:bg-apple-blueHover text-white font-bold text-sm rounded-xl text-center shadow-sm transition-all active:scale-[0.98] flex items-center justify-center space-x-1.5 flex-none">
+                        <span>ゲームを始める</span>
+                        <i class="fa-solid fa-play text-[10px]"></i>
+                    </a>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 認証状態の監視と画面表示のスイッチング
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const displayName = user.displayName || "匿名プレイヤー";
+                userNameDisplay.textContent = displayName;
+                
+                portalIntro.classList.add('hidden');
+                loginPromptCard.classList.add('hidden');
+                mainDashboard.classList.remove('hidden');
+                userProfile.classList.remove('hidden');
+                userProfile.classList.add('flex');
+
+                deployGamesList();
+
+                try {
+                    const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activity', 'latest_access');
+                    await setDoc(activityRef, {
+                        username: displayName,
+                        lastActive: serverTimestamp(),
+                        userId: user.uid
+                    }, { merge: true });
+                } catch (e) {
+                    // エラーはサイレント処理
+                }
+            } else {
+                portalIntro.classList.remove('hidden');
+                loginPromptCard.classList.remove('hidden');
+                mainDashboard.classList.add('hidden');
+                userProfile.classList.add('hidden');
+                userProfile.classList.remove('flex');
+            }
+        });
+
+        // ユーザーネーム単体での簡単ログイン処理
+        btnSignIn.addEventListener('click', async () => {
+            const desiredName = usernameInput.value.trim();
+
+            if (!desiredName) {
+                showError("プレイヤー名を入力してください。");
+                return;
+            }
+
+            errorMessage.classList.add('hidden');
+            btnSignIn.disabled = true;
+            btnSignIn.textContent = "認証中...";
+
+            try {
+                let credential;
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    credential = await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    credential = await signInAnonymously(auth);
+                }
+
+                if (credential && credential.user) {
+                    await updateProfile(credential.user, {
+                        displayName: desiredName
+                    });
+                    userNameDisplay.textContent = desiredName;
+                }
+            } catch (err) {
+                showError("一時的なエラーが発生しました。リトライしてください。");
+                btnSignIn.disabled = false;
+                btnSignIn.textContent = "ゲーム一覧を開く";
+            }
+        });
+
+        // ログアウト処理
+        btnSignOut.addEventListener('click', async () => {
+            if (confirm("ポータルからログアウトしますか？")) {
+                try {
+                    await signOut(auth);
+                    usernameInput.value = "プレイヤー1";
+                    errorMessage.classList.add('hidden');
+                    btnSignIn.disabled = false;
+                    btnSignIn.textContent = "ゲーム一覧を開く";
+                } catch (err) {
+                    // エラー無視
+                }
+            }
+        });
+
+        function showError(msg) {
+            errorText.textContent = msg;
+            errorMessage.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
